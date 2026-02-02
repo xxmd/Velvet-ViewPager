@@ -1,4 +1,4 @@
-package custom.client;
+package custom.launcher;
 
 import android.os.Bundle;
 import android.os.IBinder;

@@ -1,4 +1,4 @@
-package custom.util;
+package custom.common.util;
 
 import android.os.SystemClock;
 import android.view.MotionEvent;

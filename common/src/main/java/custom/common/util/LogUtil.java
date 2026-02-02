@@ -1,4 +1,4 @@
-package custom.util;
+package custom.common.util;
 
 import android.os.Parcel;
 import android.util.Log;

@@ -1,4 +1,4 @@
-package custom.server.view;
+package custom.velvet.view;
 
 import android.app.Dialog;
 import android.content.Context;

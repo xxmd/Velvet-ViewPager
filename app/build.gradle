@@ -17,10 +17,10 @@ android {
     }
 
     buildTypes {
-        debug {
-            // debug 模式下可以再加 .debug
-            applicationIdSuffix ".debug"
-        }
+//        debug {
+//            // debug 模式下可以再加 .debug
+//            applicationIdSuffix ".debug"
+//        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -44,9 +44,9 @@ android {
 }
 
 dependencies {
-
-    implementation "androidx.recyclerview:recyclerview:1.2.0"
-    implementation "androidx.viewpager2:viewpager2:1.1.0"
+    implementation project(':common')
+    implementation project(':Launcher')
+    implementation project(':Velvet')
 //    implementation libs.appcompat
 //    implementation libs.material
 //    implementation libs.activity

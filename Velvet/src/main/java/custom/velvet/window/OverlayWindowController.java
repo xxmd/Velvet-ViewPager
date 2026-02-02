@@ -1,4 +1,4 @@
-package custom.server.window;
+package custom.velvet.window;
 
 import android.view.Window;
 import android.view.WindowManager;

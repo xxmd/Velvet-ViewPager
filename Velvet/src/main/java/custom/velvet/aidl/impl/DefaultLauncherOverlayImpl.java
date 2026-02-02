@@ -1,4 +1,4 @@
-package custom.server.aidl;
+package custom.velvet.aidl.impl;
 
 import android.os.Bundle;
 import android.os.IBinder;

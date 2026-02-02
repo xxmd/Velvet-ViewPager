@@ -1,4 +1,4 @@
-package custom.server.aidl;
+package custom.velvet.aidl.impl;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -13,12 +13,12 @@ import android.widget.TextView;
 
 import com.google.android.libraries.launcherclient.ILauncherOverlayCallback;
 
-import custom.util.HorizonScrollSimulator;
 import custom.common.util.LogUtil;
-import custom.server.view.MinusOneLayout;
-import custom.server.window.OverlayWindowCallback;
-import custom.server.window.OverlayWindowController;
-import custom.server.window.OverlayWindowWrapper;
+import custom.velvet.view.MinusOneLayout;
+import custom.velvet.window.OverlayWindowCallback;
+import custom.velvet.window.OverlayWindowController;
+import custom.velvet.window.OverlayWindowWrapper;
+import custom.common.util.HorizonScrollSimulator;
 
 public class LauncherOverlayImpl extends DefaultLauncherOverlayImpl {
     private final Context context;

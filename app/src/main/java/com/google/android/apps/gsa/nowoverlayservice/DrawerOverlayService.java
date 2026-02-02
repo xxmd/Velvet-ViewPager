@@ -4,7 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
-import custom.aidl.LauncherOverlayImpl;
+import custom.velvet.aidl.impl.LauncherOverlayImpl;
 
 public class DrawerOverlayService extends Service {
     @Override

@@ -1,4 +1,4 @@
-package custom.server.view;
+package custom.velvet.view;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -241,9 +241,9 @@ public class MinusOneLayout extends FrameLayout {
         tv.setTextSize(28);
         tv.setTextColor(textColor);
         tv.setGravity(Gravity.CENTER);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
+        LayoutParams params = new LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.CENTER;
         container.addView(tv, params);

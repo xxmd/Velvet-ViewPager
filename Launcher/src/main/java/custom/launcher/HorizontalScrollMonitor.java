@@ -1,4 +1,4 @@
-package custom.client;
+package custom.launcher;
 
 import android.content.Context;
 import android.view.MotionEvent;

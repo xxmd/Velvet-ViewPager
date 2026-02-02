@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import com.google.android.googlequicksearchbox.R;
 
-import custom.OverlayWindowCore;
+import custom.launcher.OverlayWindowCore;
 
 public class MainActivity extends Activity {
 
@@ -39,9 +39,4 @@ public class MainActivity extends Activity {
 //        });
 //    }
 
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
 }

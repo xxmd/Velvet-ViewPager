@@ -1,4 +1,4 @@
-package custom.client;
+package custom.launcher;
 
 import android.app.Activity;
 import android.content.ComponentName;
