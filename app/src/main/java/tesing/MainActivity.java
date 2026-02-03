@@ -2,119 +2,138 @@ package tesing;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
-import android.widget.HorizontalScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.WindowManager;
 
 import com.google.android.googlequicksearchbox.R;
+import com.google.android.libraries.launcherclient.ILauncherOverlay;
+import com.google.android.libraries.launcherclient.ILauncherOverlayCallback;
 
 import custom.common.util.LogUtil;
-import custom.launcher.OverlayWindowCore;
+import tesing.impl.DefaultLauncherOverlayCallback;
+import tesing.impl.SafeLauncherOverlay;
+
 
 public class MainActivity extends Activity {
-
-    private OverlayWindowCore overlayWindowCore;
-    private HorizontalScrollView horizontalScrollView;
+    private boolean serviceConnected = false;
+    private TouchToScrollConverter scrollConverter;
+    private SafeLauncherOverlay safeLauncherOverlay;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initOverlayWindow(this);
-        this.horizontalScrollView = findViewById(R.id.horizontal_scroll_view);
-//        horizontalScrollView.setOnTouchListener(new View.OnTouchListener() {
-//            private float startX;
-//            private boolean isAtLeftEdge = false;
-//
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                int action = event.getActionMasked();
-//                float x = event.getX();
-//
-//                switch (action) {
-//                    case MotionEvent.ACTION_DOWN:
-//                        startX = x;
-//                        isAtLeftEdge = false;
-//                        break;
-//
-//                    case MotionEvent.ACTION_MOVE:
-//                        float deltaX = x - startX;
-//
-//                        // 判断是否已经到最左边（允许 5px 误差）
-//                        boolean atLeft = !horizontalScrollView.canScrollHorizontally(-1);
-//                        LogUtil.debug("atLeft: " + atLeft);
-//                        // deltaX > 0 表示从左往右滑动（试图拉更左）
-//                        if (atLeft && deltaX > 0) {
-//                            isAtLeftEdge = true;
-//                            // 这里就是你想要的时刻：到最左了，用户还在往右拉
-//                            LogUtil.debug("已到最左，用户继续从左往右拉，deltaX: " + deltaX);
-//
-//                            // 你可以在这里做想做的事：
-//                            // 1. 拉出左侧隐藏内容（类似负一屏加载更多）
-//                            // 2. 改变透明度/位移（模拟拉伸效果）
-//                            // 3. 记录初始拉伸位置，用于后续计算
-//                            // 示例：让某个左侧隐藏 View 跟随拉动出现
-//                            // leftHiddenView.setTranslationX(deltaX * 0.5f); // 半速跟随
-//                            v.getParent().requestDisallowInterceptTouchEvent(true);
-//                        } else {
-//                            isAtLeftEdge = false;
-//                        }
-//
-//                        // 更新起始点（保持连续性）
-//                        startX = x;
-//                        break;
-//
-//                    case MotionEvent.ACTION_UP:
-//                    case MotionEvent.ACTION_CANCEL:
-//                        if (isAtLeftEdge) {
-//                            LogUtil.debug("手指抬起，已到最左时的拉伸结束");
-//                            // 松手后的处理：回弹动画、加载数据、收起隐藏内容等
-//                            // 示例：平滑回弹
-//                            // leftHiddenView.animate().translationX(0).setDuration(300).start();
-//                            v.getParent().requestDisallowInterceptTouchEvent(true);
-//                        }
-//                        isAtLeftEdge = false;
-//                        break;
-//                }
-//
-//                // 返回 false：让 HorizontalScrollView 继续处理自己的滚动
-//                return false;
-//            }
-//        });
-//        TextView tvHello = findViewById(R.id.tv_hello);
-//        tvHello.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Toast.makeText(MainActivity.this, "Hello 被点击", Toast.LENGTH_SHORT).show();
-//            }
-//        });
+        bindService();
     }
 
-    private void initOverlayWindow(Activity activity) {
-        overlayWindowCore = new OverlayWindowCore(activity);
-        overlayWindowCore.bindService();
-    }
+    private void bindService() {
+        Intent intent = buildOverlayWindowIntent();
+        bindService(intent, new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder binder) {
+                try {
+                    ILauncherOverlay launcherOverlay = ILauncherOverlay.Stub.asInterface(binder);
+                    safeLauncherOverlay = new SafeLauncherOverlay(launcherOverlay);
+                    Bundle bundle = buildAttachWindowBundle(MainActivity.this);
+                    ILauncherOverlayCallback callback = new ILauncherOverlayCallback.Stub() {
+                        @Override
+                        public void overlayScrollChanged(float progress) throws RemoteException {
 
-//    private void immersiveStatusBar() {
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-//            return insets;
-//        });
-//    }
+                            LogUtil.debug("ILauncherOverlayCallback overlayScrollChanged progress: " + progress);
+                        }
+
+                        @Override
+                        public void overlayStatusChanged(int status) throws RemoteException {
+                            LogUtil.debug("ILauncherOverlayCallback overlayStatusChanged status: " + status);
+                        }
+
+                        @Override
+                        public void onServiceStatus(Bundle bundle) throws RemoteException {
+                            LogUtil.debug("ILauncherOverlayCallback onServiceStatus bundle: " + bundle);
+                            serviceConnected = true;
+                            monitorViewScroll(findViewById(android.R.id.content));
+                        }
+                    };
+                    launcherOverlay.windowAttached2(bundle, callback);
+                } catch (RemoteException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                serviceConnected = false;
+            }
+        }, Service.BIND_AUTO_CREATE);
+    }
 
 
     @Override
     protected void onResume() {
         super.onResume();
-//        View contentView = findViewById(android.R.id.content);
-        View contentView = findViewById(R.id.root);
-        overlayWindowCore.addScrollListener(contentView);
+        if (serviceConnected) {
+            monitorViewScroll(findViewById(android.R.id.content));
+        }
+    }
+
+    private void monitorViewScroll(View view) {
+        if (view == null || view.getMeasuredWidth() == 0) {
+            return;
+        }
+        if (scrollConverter != null) {
+            return;
+        }
+        scrollConverter = new TouchToScrollConverter();
+        view.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return scrollConverter.onTouchEvent(event);
+            }
+        });
+        scrollConverter.setMaxScrollDistance(view.getMeasuredWidth());
+        scrollConverter.setHorizontalScrollListener(new TouchToScrollConverter.HorizontalScrollListener() {
+            @Override
+            public void onScrollStart() {
+                safeLauncherOverlay.startScroll();
+            }
+
+            @Override
+            public void onScrolling(float deltaX, float progress) {
+                safeLauncherOverlay.onScroll(progress);
+            }
+
+            @Override
+            public void onScrollEnd(float deltaX, float velocityX) {
+                safeLauncherOverlay.endScroll();
+            }
+        });
+    }
+
+    private Intent buildOverlayWindowIntent() {
+        Intent intent = new Intent("com.android.launcher3.WINDOW_OVERLAY");
+        intent.setPackage("com.google.android.googlequicksearchbox");
+        intent.setData(Uri.parse("app://some_path"));
+        return intent;
+    }
+
+    private Bundle buildAttachWindowBundle(Activity activity) {
+        Bundle bundle = new Bundle();
+        WindowManager.LayoutParams attributes = activity.getWindow().getAttributes();
+        bundle.putParcelable("layout_params", attributes);
+        Configuration configuration = activity.getResources().getConfiguration();
+        bundle.putParcelable("configuration", configuration);
+        return bundle;
     }
 
     @Override
