@@ -178,7 +178,6 @@ public class MinusOneLayout extends FrameLayout {
      */
     private class SimplePagerAdapter extends RecyclerView.Adapter<SimplePagerAdapter.ViewHolder> {
 
-
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             FrameLayout container = new FrameLayout(parent.getContext());
@@ -193,8 +192,6 @@ public class MinusOneLayout extends FrameLayout {
         public void onBindViewHolder(ViewHolder holder, int position) {
             FrameLayout container = holder.container;
             container.removeAllViews();
-
-            LogUtil.debug("onBindViewHolder");
 
             if (position == 0) {
                 mLeftContainer = container;

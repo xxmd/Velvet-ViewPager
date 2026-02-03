@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -14,27 +15,27 @@ import android.widget.TextView;
 import com.google.android.libraries.launcherclient.ILauncherOverlayCallback;
 
 import custom.common.util.LogUtil;
+import custom.velvet.entity.converter.HorizonScrollToTouchConverter;
+import custom.velvet.entity.enums.ServiceStatus;
 import custom.velvet.view.MinusOneLayout;
 import custom.velvet.window.OverlayWindowCallback;
 import custom.velvet.window.OverlayWindowController;
 import custom.velvet.window.OverlayWindowWrapper;
-import custom.common.util.HorizonScrollSimulator;
 
 public class LauncherOverlayImpl extends DefaultLauncherOverlayImpl {
     private final Context context;
     private final int screenWidth;
-    private final int SERVER_STATUS_OK = 3;
     private ILauncherOverlayCallback callback;
     private Handler mainHandler;
     private OverlayWindowController overlayWindowController;
     private MinusOneLayout windowContentView;
     private OverlayWindowWrapper windowWrapper;
-    private HorizonScrollSimulator scrollSimulator = new HorizonScrollSimulator();
+    private HorizonScrollToTouchConverter scrollTouchConverter = new HorizonScrollToTouchConverter();
 
     public LauncherOverlayImpl(Context context) {
         this.context = context;
-        this.screenWidth = context.getResources().getDisplayMetrics().widthPixels;
         this.mainHandler = new Handler(Looper.getMainLooper());
+        this.screenWidth = context.getResources().getDisplayMetrics().widthPixels;
     }
 
     @Override
@@ -43,10 +44,12 @@ public class LauncherOverlayImpl extends DefaultLauncherOverlayImpl {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                scrollSimulator.simulateDown();
+                MotionEvent downEvent = scrollTouchConverter.onScrollStart();
+                dispatchTouchEvent(downEvent);
             }
         });
     }
+
 
     @Override
     public void onScroll(float progress) throws RemoteException {
@@ -60,8 +63,8 @@ public class LauncherOverlayImpl extends DefaultLauncherOverlayImpl {
                 if (Math.abs(progress - 0.0) > 0.05f) {
                     overlayWindowController.setVisible(true);
                 }
-                float currentX = progress * screenWidth;
-                scrollSimulator.simulateMove(currentX);
+                MotionEvent moveEvent = scrollTouchConverter.onScrolling(progress, screenWidth);
+                dispatchTouchEvent(moveEvent);
             }
         });
     }
@@ -72,9 +75,17 @@ public class LauncherOverlayImpl extends DefaultLauncherOverlayImpl {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                scrollSimulator.simulateUp();
+                MotionEvent upOrCancelEvent = scrollTouchConverter.onScrollEnd();
+                dispatchTouchEvent(upOrCancelEvent);
             }
         });
+    }
+
+    private void dispatchTouchEvent(MotionEvent event) {
+        View decorView = windowWrapper.getWindow().getDecorView();
+        if (decorView != null) {
+            decorView.dispatchTouchEvent(event);
+        }
     }
 
     private void runOnUiThread(Runnable runnable) {
@@ -95,12 +106,10 @@ public class LauncherOverlayImpl extends DefaultLauncherOverlayImpl {
                 Window window = windowWrapper.getWindow();
                 windowContentView = createContentView(context);
                 windowWrapper.setContentView(windowContentView);
-
-                scrollSimulator.setTargetView(window.getDecorView());
                 overlayWindowController = new OverlayWindowController(window);
                 overlayWindowController.setVisible(false);
                 overlayWindowController.setTouchable(false);
-                sendServiceStatus(SERVER_STATUS_OK);
+                notifyServiceStatus(ServiceStatus.OK);
                 bindEvent();
             }
         });
@@ -145,10 +154,10 @@ public class LauncherOverlayImpl extends DefaultLauncherOverlayImpl {
         });
     }
 
-    private void sendServiceStatus(int status) {
+    private void notifyServiceStatus(ServiceStatus status) {
         try {
             Bundle bundle = new Bundle();
-            bundle.putInt("service_status", status);
+            bundle.putInt("service_status", status.getValue());
             callback.onServiceStatus(bundle);
         } catch (RemoteException e) {
             LogUtil.error("notifyServerStatus error", e);

@@ -3,7 +3,6 @@ setlocal enabledelayedexpansion
 
 set APK_SRC=E:\StudioProjects\Velvet-ViewPager\Launcher3QuickStep.apk
 set APK_DST=/system_ext/priv-app/Launcher3QuickStep/Launcher3QuickStep.apk
-REM set APK_DST=/data/app/~~v3HGGO7dWfhEeLr1MjUFzQ==/com.google.android.googlequicksearchbox-0ythbF9sAj08QjtFLGmxPw==/base.apk
 
 echo ================================
 echo 1. Checking adb devices...
